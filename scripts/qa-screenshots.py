@@ -26,6 +26,24 @@ def main():
         page.screenshot(path=str(QA / "qa-desktop-services.png"))
         page.close()
 
+        # Mobile hero
+        page = browser.new_page(viewport={"width": 390, "height": 844})
+        page.goto(URL, wait_until="networkidle")
+        page.wait_for_timeout(1500)
+        page.evaluate("window.scrollTo(0, 0)")
+        page.wait_for_timeout(1000)
+        page.screenshot(path=str(QA / "qa-mobile-hero.png"))
+        page.close()
+
+        # Mobile mid-scroll
+        page = browser.new_page(viewport={"width": 390, "height": 844})
+        page.goto(URL, wait_until="networkidle")
+        page.wait_for_timeout(1500)
+        page.evaluate("window.scrollTo(0, 4500)")
+        page.wait_for_timeout(1000)
+        page.screenshot(path=str(QA / "qa-mobile-mid.png"))
+        page.close()
+
         # Mobile services section
         page = browser.new_page(viewport={"width": 390, "height": 844})
         page.goto(URL, wait_until="networkidle")
@@ -33,6 +51,15 @@ def main():
         page.evaluate("window.scrollTo(0, 8200)")
         page.wait_for_timeout(1200)
         page.screenshot(path=str(QA / "qa-mobile-services.png"))
+        page.close()
+
+        # Mobile modal
+        page = browser.new_page(viewport={"width": 390, "height": 844})
+        page.goto(URL, wait_until="networkidle")
+        page.wait_for_timeout(1000)
+        page.click("text=Programează-te >> visible=true")
+        page.wait_for_timeout(600)
+        page.screenshot(path=str(QA / "qa-modal-mobile.png"))
         page.close()
 
         # Desktop modal
@@ -46,7 +73,7 @@ def main():
 
         browser.close()
     print("QA screenshots regenerated:")
-    for f in sorted(QA.glob("qa-*-services.png")) + [QA / "qa-modal-desktop.png"]:
+    for f in sorted(QA.glob("qa-*.png")):
         print(" -", f.name)
 
 
