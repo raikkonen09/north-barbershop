@@ -70,9 +70,11 @@
 
     /* Services section */
     .services-section {
-      position: relative; z-index: 10;
+      position: relative; z-index: 100;
       background: var(--sw-bg);
       padding: clamp(60px, 10vw, 110px) clamp(18px, 6vw, 80px);
+      min-height: 100vh;
+      display: flex; flex-direction: column; justify-content: center;
     }
     .services-section__head { max-width: 720px; margin: 0 auto 44px; text-align: center; }
     .services-section__head h2 { font-family: var(--sw-font-display); font-size: clamp(1.9rem, 4vw, 2.8rem); margin: 0 0 12px; color: var(--sw-ink); }
@@ -119,6 +121,8 @@
       background: linear-gradient(90deg, var(--sw-bg) 0%, color-mix(in srgb, var(--sw-bg) 88%, transparent) 32%, color-mix(in srgb, var(--sw-bg) 55%, transparent) 62%, transparent 100%);
     }
     .sw-copy { width: min(46vw, 500px); }
+    .sw-brand__mark { width: 42px; height: 42px; background: url('assets/logo.svg') center/contain no-repeat; box-shadow: none; border-radius: 0; }
+    .sw-brand { gap: 12px; }
     .sw-copy__title { text-shadow: 0 2px 14px color-mix(in srgb, var(--sw-bg) 92%, transparent); }
     .sw-copy__body { text-shadow: 0 1px 10px color-mix(in srgb, var(--sw-bg) 95%, transparent); }
     @media (max-width: 860px) {
