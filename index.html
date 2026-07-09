@@ -71,10 +71,19 @@
     /* Services section */
     .services-section {
       position: relative; z-index: 100;
+      isolation: isolate;
       background: var(--sw-bg);
-      padding: clamp(60px, 10vw, 110px) clamp(18px, 6vw, 80px);
+      padding: clamp(80px, 12vw, 140px) clamp(18px, 6vw, 80px);
       min-height: 100vh;
       display: flex; flex-direction: column; justify-content: center;
+      box-shadow: 0 -90px 120px 70px var(--sw-bg);
+    }
+    .services-section::before {
+      content: "";
+      position: absolute;
+      left: 0; right: 0; top: -80px; height: 80px;
+      background: var(--sw-bg);
+      z-index: -1;
     }
     .services-section__head { max-width: 720px; margin: 0 auto 44px; text-align: center; }
     .services-section__head h2 { font-family: var(--sw-font-display); font-size: clamp(1.9rem, 4vw, 2.8rem); margin: 0 0 12px; color: var(--sw-ink); }
@@ -141,7 +150,7 @@
   <!-- Services / Prices section -->
   <section id="servicii" class="services-section">
     <div class="services-section__head">
-      <h2>Servicii & prețuri</h2>
+      <h2>Servicii</h2>
       <p>Toate serviciile includ consultanță, produse de styling și atenție la detalii.</p>
     </div>
     <div class="services-grid">

@@ -122,13 +122,34 @@ function mountScrollWorld(container, config) {
 
   const stage = el('div', 'sw-stage');
   const copylayer = el('div', 'sw-copylayer');
-  const route = el('div', 'sw-route');
+  const scissorsRail = el('div', 'sw-scissors-rail');
+  const scissors = el('div', 'sw-scissors');
+  scissors.innerHTML = `
+    <svg viewBox="0 0 40 72" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <g class="sw-scissors__blade sw-scissors__blade--top">
+        <circle cx="12" cy="54" r="5"/>
+        <path d="M12 54 L18 36 L20 8"/>
+      </g>
+      <g class="sw-scissors__blade sw-scissors__blade--bottom">
+        <circle cx="28" cy="54" r="5"/>
+        <path d="M28 54 L22 36 L20 8"/>
+      </g>
+      <circle cx="20" cy="36" r="2.5" fill="currentColor" stroke="none"/>
+    </svg>`;
+  const hairs = el('div', 'sw-hairs');
+  const hairEls = [];
+  SECTIONS.forEach(() => {
+    const h = el('div', 'sw-hair');
+    hairs.appendChild(h); hairEls.push(h);
+  });
+  scissorsRail.appendChild(hairs); scissorsRail.appendChild(scissors);
+
   const hint = el('div', 'sw-hint');
   const hintText = el('span'); hintText.textContent = config.hint || 'scroll'; hint.appendChild(hintText);
   hint.appendChild(el('i'));
   const track = el('div', 'sw-track');
 
-  [sky, scrollbar, topbar, stage, copylayer, route, hint, track].forEach(n => container.appendChild(n));
+  [sky, scrollbar, topbar, stage, copylayer, scissorsRail, hint, track].forEach(n => container.appendChild(n));
 
   // segment scenes
   SEGMENTS.forEach(s => {
@@ -140,8 +161,8 @@ function mountScrollWorld(container, config) {
     s.loading = false; s.ready = false; s.cur = 0; s.target = 0; s.visible = false;
   });
 
-  // per-section copy / route / nav
-  const copies = [], dots = [];
+  // per-section copy / nav / hairs
+  const copies = [];
   SECTIONS.forEach((s, i) => {
     const c = el('article', 'sw-copy'); c.style.setProperty('--sw-accent', s.accent || '');
     c.innerHTML =
@@ -152,10 +173,6 @@ function mountScrollWorld(container, config) {
       (s.tags && s.tags.length ? `<ul class="sw-copy__tags">${s.tags.map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : '') +
       (s.cta ? `<div class="sw-copy__cta">${ctaBtns(s.cta)}</div>` : '');
     copylayer.appendChild(c); copies.push(c);
-
-    const dot = el('button', 'sw-route__dot'); dot.style.setProperty('--sw-accent', s.accent || '');
-    dot.innerHTML = `<span class="sw-route__label">${esc(s.label || '')}</span><i></i>`;
-    dot.addEventListener('click', () => jumpTo(i)); route.appendChild(dot); dots.push(dot);
 
     if (config.nav !== false) {
       const b = el('button', 'sw-nav__item'); b.textContent = s.label || '';
@@ -252,13 +269,22 @@ function mountScrollWorld(container, config) {
     const cur = SEGMENTS[ci];
     const near = clamp(cur.kind === 'dive' ? cur.si
       : (((y - cur.start) / (cur.end - cur.start)) > 0.5 ? cur.si + 1 : cur.si), 0, N - 1);
+    const scrollProgress = clamp(y / (totalW * vh), 0, 1);
+    const railH = scissorsRail.offsetHeight || 1;
+    const scissorsY = scrollProgress * railH;
+    scissors.style.transform = `translateY(${scissorsY}px)`;
     if (near !== activeIndex) {
       activeIndex = near;
-      dots.forEach((d, k) => d.classList.toggle('is-active', k === near));
+      hairEls.forEach((h, k) => h.classList.toggle('sw-hair--cut', k <= near));
       nav.querySelectorAll('.sw-nav__item').forEach((n, k) => n.classList.toggle('is-active', k === near));
       container.style.setProperty('--sw-accent', SECTIONS[near].accent || '');
+      if (!reduce) {
+        scissors.classList.add('is-snipping');
+        clearTimeout(scissors._snipTimer);
+        scissors._snipTimer = setTimeout(() => scissors.classList.remove('is-snipping'), 260);
+      }
     }
-    scrollbarFill.style.transform = `scaleX(${clamp(y / (totalW * vh))})`;
+    scrollbarFill.style.transform = `scaleX(${scrollProgress})`;
     hint.style.opacity = clamp(1 - y / (0.5 * vh));
     if (particles) particles.style.transform = `translate3d(0, ${-y * 0.05}px, 0)`;
     ticking = false;
@@ -391,14 +417,17 @@ function injectCSS() {
   .sw-btn{text-decoration:none;font-weight:600;font-size:.95rem;padding:13px 24px;border-radius:999px;transition:transform .2s;}
   .sw-btn--primary{color:#fff;background:var(--sw-ink);} .sw-btn--primary:hover{transform:translateY(-2px);}
   .sw-btn--ghost{color:var(--sw-ink);border:1.5px solid color-mix(in srgb,var(--sw-ink) 25%,transparent);} .sw-btn--ghost:hover{transform:translateY(-2px);}
-  .sw-route{position:fixed;right:clamp(14px,2.4vw,30px);top:50%;z-index:40;transform:translateY(-50%);display:flex;flex-direction:column;gap:22px;padding:18px 10px;}
-  .sw-route::before{content:"";position:absolute;left:50%;top:22px;bottom:22px;width:2px;transform:translateX(-50%);background:var(--sw-accent);opacity:.28;}
-  .sw-route__dot{position:relative;border:0;background:transparent;cursor:pointer;width:14px;height:14px;display:grid;place-items:center;}
-  .sw-route__dot i{width:9px;height:9px;border-radius:50%;background:color-mix(in srgb,var(--sw-accent) 40%,transparent);transition:transform .3s,background .3s,box-shadow .3s;}
-  .sw-route__dot:hover i{transform:scale(1.25);background:var(--sw-accent);}
-  .sw-route__dot.is-active i{background:var(--sw-accent);transform:scale(1.4);box-shadow:0 0 0 5px color-mix(in srgb,var(--sw-accent) 22%,transparent);}
-  .sw-route__label{position:absolute;right:24px;top:50%;transform:translateY(-50%) translateX(6px);white-space:nowrap;font-size:.78rem;font-weight:600;color:var(--sw-ink);background:color-mix(in srgb,#fff 85%,transparent);backdrop-filter:blur(6px);padding:5px 11px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;border:1px solid color-mix(in srgb,var(--sw-accent) 14%,transparent);}
-  .sw-route__dot:hover .sw-route__label,.sw-route__dot.is-active .sw-route__label{opacity:1;transform:translateY(-50%) translateX(0);}
+  .sw-scissors-rail{position:fixed;right:clamp(18px,3vw,40px);top:50%;z-index:110;transform:translateY(-50%);height:min(72vh,560px);width:48px;pointer-events:none;}
+  .sw-hairs{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:16px 0;}
+  .sw-hair{width:5px;flex:1 1 auto;margin:6px 0;border-radius:999px;background:linear-gradient(180deg,#4a342a 0%,#7a5c4a 100%);opacity:.9;transition:clip-path .35s ease,opacity .35s ease;transform-origin:top center;}
+  .sw-hair--cut{clip-path:polygon(0 0,100% 0,100% 48%,85% 58%,100% 68%,55% 78%,100% 88%,50% 100%,0 88%,45% 78%,0 68%,15% 58%,0 48%);opacity:.65;}
+  .sw-scissors{position:absolute;top:0;left:50%;width:40px;height:72px;margin:-36px 0 0 -20px;color:var(--sw-ink);transform:translateY(0);transition:transform .08s linear;filter:drop-shadow(0 8px 14px color-mix(in srgb,var(--sw-ink) 18%,transparent));pointer-events:auto;}
+  .sw-scissors svg{display:block;width:100%;height:100%;}
+  .sw-scissors__blade--top,.sw-scissors__blade--bottom{transform-origin:20px 36px;transition:transform .18s cubic-bezier(.34,1.56,.64,1);}
+  .sw-scissors__blade--top{transform:rotate(-16deg);}
+  .sw-scissors__blade--bottom{transform:rotate(16deg);}
+  .sw-scissors.is-snipping .sw-scissors__blade--top{transform:rotate(4deg);}
+  .sw-scissors.is-snipping .sw-scissors__blade--bottom{transform:rotate(-4deg);}
   .sw-hint{position:fixed;left:50%;bottom:26px;z-index:30;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:10px;font-size:.76rem;letter-spacing:.14em;text-transform:uppercase;color:var(--sw-ink-soft);transition:opacity .3s;}
   .sw-hint i{width:22px;height:34px;border-radius:12px;border:2px solid color-mix(in srgb,var(--sw-ink) 28%,transparent);position:relative;}
   .sw-hint i::after{content:"";position:absolute;left:50%;top:7px;width:4px;height:7px;border-radius:2px;background:var(--sw-accent);transform:translateX(-50%);animation:sw-wheel 1.7s ease-in-out infinite;}
@@ -414,17 +443,19 @@ function injectCSS() {
     .sw-copy__title{font-size:clamp(1.9rem,7.5vw,2.7rem);}
     .sw-copy__body{max-width:none;font-size:clamp(.98rem,3.6vw,1.1rem);} .sw-scene__video,.sw-scene__still{object-position:center 46%;}
     .sw-hint{bottom:calc(20px + env(safe-area-inset-bottom));}
-    .sw-route{gap:16px;right:6px;} .sw-route__label{display:none;}
+    .sw-scissors-rail{right:10px;height:min(62vh,420px);width:38px;}
+    .sw-scissors{width:32px;height:58px;margin:-29px 0 0 -16px;}
+    .sw-hair{width:4px;}
   }
   /* Portrait phones crop a 16:9 clip hard; keep the framing centred so the focal
      subject (which the camera dives toward) stays in view. */
   @media (max-width:860px) and (orientation:portrait){
     .sw-scene__video,.sw-scene__still{object-position:center 44%;}
   }
-  /* Touch: give the route dots a finger-sized hit area without growing the visible dot. */
+  /* Touch: keep the scissors rail easy to see without eating tap targets. */
   @media (hover:none) and (pointer:coarse){
-    .sw-route{padding:14px 6px;}
-    .sw-route__dot{width:28px;height:28px;}
+    .sw-scissors-rail{padding:14px 6px;}
+    .sw-scissors{width:36px;height:64px;margin:-32px 0 0 -18px;}
     .sw-btn{padding:15px 26px;}
   }
   @media (prefers-reduced-motion:reduce){ .sw-hint i::after{animation:none;} .sw-pt{display:none;} }
