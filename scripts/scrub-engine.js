@@ -127,12 +127,12 @@ function mountScrollWorld(container, config) {
   scissors.innerHTML = `
     <svg viewBox="0 0 40 72" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <g class="sw-scissors__blade sw-scissors__blade--top">
-        <circle cx="12" cy="54" r="5"/>
-        <path d="M12 54 L18 36 L20 8"/>
+        <circle cx="12" cy="18" r="5"/>
+        <path d="M12 18 L18 36 L20 64"/>
       </g>
       <g class="sw-scissors__blade sw-scissors__blade--bottom">
-        <circle cx="28" cy="54" r="5"/>
-        <path d="M28 54 L22 36 L20 8"/>
+        <circle cx="28" cy="18" r="5"/>
+        <path d="M28 18 L22 36 L20 64"/>
       </g>
       <circle cx="20" cy="36" r="2.5" fill="currentColor" stroke="none"/>
     </svg>`;
@@ -424,10 +424,10 @@ function injectCSS() {
   .sw-scissors{position:absolute;top:0;left:50%;width:40px;height:72px;margin:-36px 0 0 -20px;color:var(--sw-ink);transform:translateY(0);transition:transform .08s linear;filter:drop-shadow(0 8px 14px color-mix(in srgb,var(--sw-ink) 18%,transparent));pointer-events:auto;}
   .sw-scissors svg{display:block;width:100%;height:100%;}
   .sw-scissors__blade--top,.sw-scissors__blade--bottom{transform-origin:20px 36px;transition:transform .18s cubic-bezier(.34,1.56,.64,1);}
-  .sw-scissors__blade--top{transform:rotate(-16deg);}
-  .sw-scissors__blade--bottom{transform:rotate(16deg);}
-  .sw-scissors.is-snipping .sw-scissors__blade--top{transform:rotate(4deg);}
-  .sw-scissors.is-snipping .sw-scissors__blade--bottom{transform:rotate(-4deg);}
+  .sw-scissors__blade--top{transform:rotate(16deg);}
+  .sw-scissors__blade--bottom{transform:rotate(-16deg);}
+  .sw-scissors.is-snipping .sw-scissors__blade--top{transform:rotate(-4deg);}
+  .sw-scissors.is-snipping .sw-scissors__blade--bottom{transform:rotate(4deg);}
   .sw-hint{position:fixed;left:50%;bottom:26px;z-index:30;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:10px;font-size:.76rem;letter-spacing:.14em;text-transform:uppercase;color:var(--sw-ink-soft);transition:opacity .3s;}
   .sw-hint i{width:22px;height:34px;border-radius:12px;border:2px solid color-mix(in srgb,var(--sw-ink) 28%,transparent);position:relative;}
   .sw-hint i::after{content:"";position:absolute;left:50%;top:7px;width:4px;height:7px;border-radius:2px;background:var(--sw-accent);transform:translateX(-50%);animation:sw-wheel 1.7s ease-in-out infinite;}
