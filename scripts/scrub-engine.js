@@ -225,20 +225,30 @@ function mountScrollWorld(container, config) {
         // painted — on iOS a seeked-but-never-played muted video stays blank, so
         // hiding the still on metadata alone would flash an empty scene.
         v.addEventListener('seeked', () => { s.el.classList.add('has-clip'); }, { once: true });
-        v.addEventListener('loadeddata', () => { try { v.pause(); } catch (e) {} if (userReady) primeVideo(v); });
+        v.addEventListener('loadeddata', () => {
+          try { v.pause(); } catch (e) {}
+          if (userReady) primeVideo(v);
+          // Mobile fallback: if the seeked event never fires (some decoders stay
+          // stuck on the first frame), reveal the video once data is available.
+          if (isMobile()) {
+            clearTimeout(s._revealTimer);
+            s._revealTimer = setTimeout(() => { if (v.readyState >= 3) s.el.classList.add('has-clip'); }, 900);
+          }
+        });
         s.el.appendChild(v); s.video = v; s.hasClip = true;
       }).catch(() => { s.loading = false; });
   }
 
   function read() {
     const y = window.scrollY || window.pageYOffset;
-    const fade = CROSSFADE * vh;
+    const fade = (isMobile() ? CROSSFADE * 0.6 : CROSSFADE) * vh;
     let ci = 0;
     for (let i = 0; i < NSEG; i++) if (y >= SEGMENTS[i].start) ci = i;
 
+    const lookahead = isMobile() ? 2.8 * vh : 1.6 * vh;
     for (let i = 0; i < NSEG; i++) {
       const s = SEGMENTS[i];
-      if (y > s.start - 1.6 * vh && y < s.end + 1.6 * vh) loadClip(s);
+      if (y > s.start - lookahead && y < s.end + lookahead) loadClip(s);
       const local = clamp((y - s.start) / (s.end - s.start), 0, 1);
       s.target = s.linger ? lingerEase(local, s.linger) : local;
       let outside = 0;
@@ -315,8 +325,20 @@ function mountScrollWorld(container, config) {
   let userReady = false;
   function primeVideo(v) {
     if (!isMobile() || !v) return;
-    try { const p = v.play(); if (p && p.then) p.then(() => { try { v.pause(); } catch (e) {} }).catch(() => {}); }
-    catch (e) {}
+    if (v._primed) return;
+    v._primed = true;
+    try {
+      const p = v.play();
+      if (p && p.then) {
+        p.then(() => {
+          try {
+            v.pause();
+            // Force iOS/WebKit to decode and paint one frame so later seeks are instant.
+            if (v.readyState >= 2) v.currentTime = 0.001;
+          } catch (e) {}
+        }).catch(() => {});
+      }
+    } catch (e) {}
   }
   function onFirstGesture() {
     if (userReady) return;

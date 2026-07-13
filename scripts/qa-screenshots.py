@@ -10,6 +10,16 @@ URL = "http://localhost:8004"
 QA = ROOT / "qa"
 
 
+def scroll_to(page, ratio):
+    """Scroll to a ratio of the scroll-world track height."""
+    y = page.evaluate("""(ratio) => {
+      const track = document.querySelector('.sw-track');
+      return track ? Math.round(track.offsetHeight * ratio) : 0;
+    }""", ratio)
+    page.evaluate(f"window.scrollTo(0, {y})")
+    return y
+
+
 def main():
     if not QA.exists():
         QA.mkdir(parents=True)
@@ -21,7 +31,7 @@ def main():
         page = browser.new_page(viewport={"width": 1440, "height": 900})
         page.goto(URL, wait_until="networkidle")
         page.wait_for_timeout(1500)
-        page.evaluate("window.scrollTo(0, 9300)")
+        scroll_to(page, 1.12)
         page.wait_for_timeout(1200)
         page.screenshot(path=str(QA / "qa-desktop-services.png"))
         page.close()
@@ -35,11 +45,11 @@ def main():
         page.screenshot(path=str(QA / "qa-mobile-hero.png"))
         page.close()
 
-        # Mobile mid-scroll
+        # Mobile mid-scroll (around scene 3)
         page = browser.new_page(viewport={"width": 390, "height": 844})
         page.goto(URL, wait_until="networkidle")
         page.wait_for_timeout(1500)
-        page.evaluate("window.scrollTo(0, 4500)")
+        scroll_to(page, 0.45)
         page.wait_for_timeout(1000)
         page.screenshot(path=str(QA / "qa-mobile-mid.png"))
         page.close()
@@ -48,7 +58,7 @@ def main():
         page = browser.new_page(viewport={"width": 390, "height": 844})
         page.goto(URL, wait_until="networkidle")
         page.wait_for_timeout(1500)
-        page.evaluate("window.scrollTo(0, 8200)")
+        scroll_to(page, 1.12)
         page.wait_for_timeout(1200)
         page.screenshot(path=str(QA / "qa-mobile-services.png"))
         page.close()
